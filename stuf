@@ -6,6 +6,12 @@ const mainApp = Express();
 let key = null
 let cookie = null
 
+const validKeys = [
+  "key1",
+  "key2",
+  "key3"
+];
+
 const endpoints = {
     assetDelivery: id => `https://assetdelivery.roblox.com/v1/asset/?id=${id}`,
     publish: (title, description, groupId) =>
@@ -76,8 +82,18 @@ mainApp.get('/', (req, res) => {
 });
 
 mainApp.post('/', async (req, res) => {
-    const cookie = req.body.cookie ?? (await getRoblosecurity());
-    if (!cookie) return console.error("Cookie not found/Invalid");
+    const providedKey = req.body.key;
+  
+    if (!validKeys.includes(providedKey)) {
+      console.log('Invalid key');
+      return;
+    }
+  
+    const cookie = req.body.cookie || (await getRoblosecurity());
+    if (!cookie) {
+      console.error('Cookie not found/Invalid');
+      return;
+    }
   
     await noblox.setCookie(cookie);
     const csrf = await noblox.getGeneralToken();
@@ -89,7 +105,7 @@ mainApp.post('/', async (req, res) => {
     const animationCount = Object.entries(req.body.ids).length;
   
     if (animationCount > maxAnimations) {
-        console.log("Warning: This game has a lot of animations. This may or may not take a while.");
+      console.log('Warning: This game has a lot of animations. This may or may not take a while.');
     }
   
     console.log('Up to date working');
@@ -97,75 +113,73 @@ mainApp.post('/', async (req, res) => {
     const failedIDs = [];
   
     for (const [name, id] of Object.entries(req.body.ids)) {
-        let i = 0;
-        let success = false;
+      let i = 0;
+      let success = false;
   
-        while (i < 5 && !success) {
-            try {
-                if (req.body.groupID) {
-                    remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
-                } else {
-                    remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
-                }
+      while (i < 5 && !success) {
+        try {
+          if (req.body.groupID) {
+            remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
+          } else {
+            remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
+          }
   
-                if (remapped[id]) {
-                    console.log(name, id, '-->', remapped[id]);
-                    success = true;
-                }
-  
-            } catch (error) {
-                console.log(name, id, 'RETRYING');
-            }
-  
-            i++;
+          if (remapped[id]) {
+            console.log(name, id, '-->', remapped[id]);
+            success = true;
+          }
+        } catch (error) {
+          console.log(name, id, 'RETRYING');
         }
   
-        if (!success) {
-            console.log(name, id, 'FAILED');
-            failedIDs.push(id);
-        }
+        i++;
+      }
+  
+      if (!success) {
+        console.log(name, id, 'FAILED');
+        failedIDs.push(id);
+      }
     }
   
     console.log('Finished reuploading animations');
   
     // Retry failed animations
     if (failedIDs.length > 0) {
-        console.log(`Retrying failed animations...`);
-        for (const id of failedIDs) {
-            let success = false;
-            let i = 0;
+      console.log('Retrying failed animations...');
+      for (const id of failedIDs) {
+        let success = false;
+        let i = 0;
   
-            while (i < 3 && !success) {
-                try {
-                    if (req.body.groupID) {
-                        remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
-                    } else {
-                        remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
-                    }
-  
-                    if (remapped[id]) {
-                        console.log(`Animation ${id} retried successfully`);
-                        success = true;
-                    }
-  
-                } catch (error) {
-                    console.log(`Animation ${id} failed retrying...`);
-                }
-  
-                i++;
+        while (i < 3 && !success) {
+          try {
+            if (req.body.groupID) {
+              remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
+            } else {
+              remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
             }
   
-            if (!success) {
-                console.log(`Animation ${id} failed again after retrying`);
+            if (remapped[id]) {
+              console.log(`Animation ${id} retried successfully`);
+              success = true;
             }
+          } catch (error) {
+            console.log(`Animation ${id} failed retrying...`);
+          }
+  
+          i++;
         }
   
-        console.log('Finished retrying failed animations');
+        if (!success) {
+          console.log(`Animation ${id} failed again after retrying`);
+        }
+      }
+  
+      console.log('Finished retrying failed animations');
     }
   
     console.log(remapped);
     console.log('Listening on 127.0.0.1:6969 \n- Version 3.1');
     workingStill = false;
-  });  
-
-mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
+  });
+  
+  mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));  
