@@ -20,7 +20,8 @@ const validKeys = [
     "testerkey2",
     "testerkey3"
   ,
-    "another"];
+    "another",
+    "ruthlessspecial"];
 
 const endpoints = {
     assetDelivery: id => `https://assetdelivery.roblox.com/v1/asset/?id=${id}`,
