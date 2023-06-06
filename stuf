@@ -27,28 +27,27 @@ const endpoints = {
 };
 
 async function getRoblosecurity() {
-    if (!process.platform !== 'win32') return;
+if (!process.platform !== 'win32') return;
 
-    const REGISTRY_KEY = 'HKCU\\Software\\Roblox\\RobloxStudioBrowser\\roblox.com';
+const REGISTRY_KEY = 'HKCU\Software\Roblox\RobloxStudioBrowser\roblox.com';
 
-    const registryData = await regList(REGISTRY_KEY);
+const registryData = await regList(REGISTRY_KEY);
 
-    if (!registryData || !registryData[REGISTRY_KEY] || !registryData[REGISTRY_KEY].values) return;
+if (!registryData || !registryData[REGISTRY_KEY] || !registryData[REGISTRY_KEY].values) return;
 
-    const cookie = result[REGISTRY_KEY].values['.ROBLOSECURITY'];
+const cookie = registryData[REGISTRY_KEY].values['.ROBLOSECURITY'];
 
-    if (!cookie || !cookie.value) return;
+if (!cookie || !cookie.value) return;
 
-    const cookieFields = cookie.value.split(',');
+const cookieFields = cookie.value.split(',');
 
-    for (const field of cookieFields) {
-        const [key, wrappedValue] = field.split('::');
-
-        if (key === 'adolfupdate') {
-            const cookieValue = wrappedValue.substring(1, wrappedValue.length - 1);
-            return cookieValue;
-        }
-    }
+for (const field of cookieFields) {
+const [key, wrappedValue] = field.split('::');
+if (validKeys.includes(key)) {
+  const cookieValue = wrappedValue.substring(1, wrappedValue.length - 1);
+  return cookieValue;
+}
+}
 }
 
 async function publishAnimation(cookie, csrf, title, description, data, groupId) {
