@@ -146,7 +146,7 @@ mainApp.post('/', async (req, res) => {
       }
   
       if (!success) {
-        console.log(name, id, 'FAILED');
+        console.log(name, id, 'FAILED/DOESNT EXIST');
         failedIDs.push(id);
       }
     }
