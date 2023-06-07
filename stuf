@@ -9,8 +9,7 @@ let cookie = null
 const validKeys = [
     "testerkey",
     "testerkey2",
-    "testerkey3"
-  ,
+    "testerkey3",
     "kineroast"];
 
 const endpoints = {
@@ -79,11 +78,7 @@ let workingStill = true;
 mainApp.get('/', (req, res) => {
     if (workingStill) return res.json(null);
     res.json(remapped);
-});
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
+    process.exit()
 });
 
 mainApp.post('/', async (req, res) => {
@@ -155,60 +150,41 @@ mainApp.post('/', async (req, res) => {
   
     // Retry failed animations
     if (failedIDs.length > 0) {
-    // Ask the user if they want to retry failed animations
-    let retryFailed = false;
-    rl.question('Some animations failed. Do you want to retry them? (yes/no) ', async (answer) => {
-      if (answer.toLowerCase() === 'yes') {
-        retryFailed = true;
-
-        for (const id of failedIDs) {
-          let success = false;
-          let i = 0;
-
-          while (i < 3 && !success) {
-            try {
-              if (req.body.groupID) {
-                remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
-              } else {
-                remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
-              }
-
-              if (remapped[id]) {
-                console.log(`Animation ${id} retried successfully`);
-                success = true;
-              }
-            } catch (error) {
-              console.log(`Animation ${id} failed retrying...`);
+      console.log('Retrying failed animations...');
+      for (const id of failedIDs) {
+        let success = false;
+        let i = 0;
+  
+        while (i < 3 && !success) {
+          try {
+            if (req.body.groupID) {
+              remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
+            } else {
+              remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
             }
-
-            i++;
+  
+            if (remapped[id]) {
+              console.log(`Animation ${id} retried successfully`);
+              success = true;
+            }
+          } catch (error) {
+            console.log(`Animation ${id} failed retrying...`);
           }
-
-          if (!success) {
-            console.log(`Animation ${id} failed again after retrying`);
-          }
+  
+          i++;
         }
-
-        console.log('Finished retrying failed animations');
-      } else {
-        console.log('Skipping retrying failed animations');
+  
+        if (!success) {
+          console.log(`Animation ${id} failed again after retrying`);
+        }
       }
-
-      console.log(remapped);
-      console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
-      workingStill = false;
-
-      // Close the readline interface
-      rl.close();
-    });
-
-    // Return the response to avoid sending an empty response before the user provides input
-    return;
-  }
-
-  console.log(remapped);
-  console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
-  workingStill = false;
-});
-
-mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
+  
+      console.log('Finished retrying failed animations');
+    }
+  
+    console.log(remapped);
+    console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
+    workingStill = false;
+  });
+  
+  mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
