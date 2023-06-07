@@ -89,7 +89,7 @@ const rl = readline.createInterface({
 mainApp.post('/', async (req, res) => {
     const providedKey = req.body.key;
     const selectedmode = req.body.mode;
-    const vr = req.body.version;
+    const version = req.body.version;
       
     if (!validKeys.includes(providedKey)) {
       console.log('Invalid key');
@@ -119,10 +119,11 @@ mainApp.post('/', async (req, res) => {
         console.log('This is SAS. It might not work. It\'s in beta.');
       }
 
-      if (vr === CurrentVer) {
-        console.log('Up to date working');
+      if (version === CurrentVer) {
+        console.log('You are up to date.');
       } else {
         console.log("You're not up to date. Join our Discord to get the new version.");
+        return;
       }
     
     const failedIDs = [];
