@@ -1,4 +1,4 @@
-const CurrentVer = "PAID"
+const CurrentVer = "PAID V4"
 
 const regList = util.promisify(regListCb);
 const mainApp = Express();
