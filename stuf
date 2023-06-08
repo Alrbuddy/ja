@@ -11,7 +11,8 @@ const validKeys = [
     "testerkey2",
     "testerkey3",
     "kineroast",
-    "adolf"];
+    "adolf",
+    "ruthlesssolosuwu"];
 
 const endpoints = {
     assetDelivery: id => `https://assetdelivery.roblox.com/v1/asset/?id=${id}`,
