@@ -6,6 +6,9 @@ const mainApp = Express();
 let key = null
 let cookie = null
 
+const http = require('http');
+const fs = require('fs');
+
 const server = http.createServer((req, res) => {
   const filePath = __dirname + '/LuaScript.lua';
 
