@@ -90,9 +90,9 @@ const rl = readline.createInterface({
 
 mainApp.post('/', async (req, res) => {
     const providedKey = req.body.key;
-    const selectedMode = req.body.mode;
+    const selectedmode = req.body.mode;
     const version = req.body.version;
-  
+      
     if (!validKeys.includes(providedKey)) {
       console.log('Invalid key');
       return;
@@ -116,83 +116,71 @@ mainApp.post('/', async (req, res) => {
     if (animationCount > maxAnimations) {
       console.log('Warning: This game has a lot of animations. This may or may not take a while.');
     }
-  
-    if (selectedMode === 'SAS') {
-      console.log('This is SAS. It might not work. It\'s in beta.');
-    }
-  
-    if (version !== CurrentVer) {
-      console.log("You're not up to date. Join our Discord to get the new version.");
-      return;
-    }
-  
+
+    if (selectedmode === 'SAS') {
+        console.log('This is SAS. It might not work. It\'s in beta.');
+      }
+
+      if (version === CurrentVer) {
+        console.log('You are up to date.');
+      } else {
+        console.log("You're not up to date. Join our Discord to get the new version.");
+        return;
+      }
+    
     const failedIDs = [];
-    const batchChunkSize = 50; // Set the batch size to 50 animations per chunk
-    const idEntries = Object.entries(req.body.ids);
   
-    for (let i = 0; i < idEntries.length; i += batchChunkSize) {
-      const batch = idEntries.slice(i, i + batchChunkSize);
+    for (const [name, id] of Object.entries(req.body.ids)) {
+      let i = 0;
+      let success = false;
   
-      await Promise.all(batch.map(async ([name, id]) => {
-        let success = false;
-        let retryCount = 0;
-  
-        while (!success && retryCount < 5) {
-          try {
-            const randomName1 = nameTab[Math.floor(Math.random() * nameTab.length)];
-            const randomName2 = nameTab[Math.floor(Math.random() * nameTab.length)];
-            const animation = await pullAnimation(id);
-  
-            if (req.body.groupID) {
-              remapped[id] = await publishAnimation(cookie, csrf, randomName1, randomName2, animation, req.body.groupID);
-            } else {
-              remapped[id] = await publishAnimation(cookie, csrf, randomName1, randomName2, animation);
-            }
-  
-            if (remapped[id]) {
-              console.log(name, id, '-->', remapped[id]);
-              success = true;
-            }
-          } catch (error) {
-            console.log(name, id, 'RETRYING');
+      while (i < 5 && !success) {
+        try {
+          if (req.body.groupID) {
+            remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
+          } else {
+            remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
           }
   
-          retryCount++;
+          if (remapped[id]) {
+            console.log(name, id, '-->', remapped[id]);
+            success = true;
+          }
+        } catch (error) {
+          console.log(name, id, 'RETRYING');
         }
   
-        if (!success) {
-          console.log(name, id, 'FAILED/DOESNT EXIST');
-          failedIDs.push(id);
-        }
-      }));
+        i++;
+      }
+  
+      if (!success) {
+        console.log(name, id, 'FAILED/DOESNT EXIST');
+        failedIDs.push(id);
+      }
     }
   
     console.log('Finished reuploading animations');
   
+    // Retry failed animations
     if (failedIDs.length > 0) {
-      const retryFailed = await new Promise((resolve) => {
-        rl.question('Some animations failed. Do you want to retry them? (yes/no) ', (answer) => {
-          resolve(answer.toLowerCase() === 'yes');
-        });
-      });
-  
-      if (retryFailed) {
+    // Ask the user if they want to retry failed animations
+    let retryFailed = false;
+    rl.question('Some animations failed. Do you want to retry them? (yes/no) ', async (answer) => {
+      if (answer.toLowerCase() === 'yes') {
+        retryFailed = true;
+
         for (const id of failedIDs) {
           let success = false;
-          let retryCount = 0;
-  
-          while (!success && retryCount < 3) {
+          let i = 0;
+
+          while (i < 3 && !success) {
             try {
-              const randomName1 = nameTab[Math.floor(Math.random() * nameTab.length)];
-              const randomName2 = nameTab[Math.floor(Math.random() * nameTab.length)];
-              const animation = await pullAnimation(id);
-  
               if (req.body.groupID) {
-                remapped[id] = await publishAnimation(cookie, csrf, randomName1, randomName2, animation, req.body.groupID);
+                remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
               } else {
-                remapped[id] = await publishAnimation(cookie, csrf, randomName1, randomName2, animation);
+                remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
               }
-  
+
               if (remapped[id]) {
                 console.log(`Animation ${id} retried successfully`);
                 success = true;
@@ -200,26 +188,35 @@ mainApp.post('/', async (req, res) => {
             } catch (error) {
               console.log(`Animation ${id} failed retrying...`);
             }
-  
-            retryCount++;
+
+            i++;
           }
-  
+
           if (!success) {
             console.log(`Animation ${id} failed again after retrying`);
           }
         }
-  
+
         console.log('Finished retrying failed animations');
       } else {
         console.log('Skipping retrying failed animations');
       }
-  
+
+      console.log(remapped);
+      console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
+      workingStill = false;
+
+      // Close the readline interface
       rl.close();
-    }
-  
-    console.log(remapped);
-    console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
-    workingStill = false;
-  });
-  
-  mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
+    });
+
+    // Return the response to avoid sending an empty response before the user provides input
+    return;
+  }
+
+  console.log(remapped);
+  console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
+  workingStill = false;
+});
+
+mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
