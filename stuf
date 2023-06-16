@@ -83,6 +83,13 @@ async function pullAnimation(id) {
     return await fetch(endpoints.assetDelivery(id)).then(res => res.blob());
 }
 
+
+async function publishAnimationWithCooldown(cookie, csrf, title, description, data, groupId, cooldown) {
+  await new Promise(resolve => setTimeout(resolve, cooldown));
+  return publishAnimation(cookie, csrf, title, description, data, groupId);
+}
+
+
 mainApp.use(bodyParser.json());
 
 const remapped = {};
@@ -148,9 +155,9 @@ mainApp.post('/', async (req, res) => {
       while (i < 5 && !success) {
         try {
           if (req.body.groupID) {
-            remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
+            remapped[id] = await publishAnimationWithCooldown(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID, 5000); // 5000 milliseconds (5 seconds) cooldown
           } else {
-            remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
+            remapped[id] = await publishAnimationWithCooldown(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID, 5000); // 5000 milliseconds (5 seconds) cooldown
           }
   
           if (remapped[id]) {
@@ -187,9 +194,9 @@ mainApp.post('/', async (req, res) => {
           while (i < 3 && !success) {
             try {
               if (req.body.groupID) {
-                remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
+                remapped[id] = await publishAnimationWithCooldown(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID, 5000); // 5000 milliseconds (5 seconds) cooldown
               } else {
-                remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
+                remapped[id] = await publishAnimationWithCooldown(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID, 5000); // 5000 milliseconds (5 seconds) cooldown
               }
 
               if (remapped[id]) {
