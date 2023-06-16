@@ -134,4 +134,4 @@ mainApp.post('/', async (req, res) => {
   workingStill = false;
 });
 
-mainApp.listen(3000, () => console.log('Server listening on port 3000.'));
+mainApp.listen(6969, () => console.log('Server listening on port 6969.'));
