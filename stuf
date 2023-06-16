@@ -53,7 +53,7 @@ if (validKeys.includes(key)) {
 }
 
 async function publishAnimation(cookie, csrf, title, description, data, groupId) {
-  const response = await fetch(endpoints.publish(title, description, groupId), {
+  const responsePromise = fetch(endpoints.publish(title, description, groupId), {
     body: data,
     method: 'POST',
     headers: {
@@ -64,16 +64,19 @@ async function publishAnimation(cookie, csrf, title, description, data, groupId)
     }
   });
 
-  if (response.ok) return await response.text();
-  else if (response.status === 429) {
-    // Handle rate limit
-    const retryAfter = parseInt(response.headers.get('retry-after'));
-    console.log(`Rate limit exceeded. Retrying after ${retryAfter} seconds.`);
-    await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-    return publishAnimation(cookie, csrf, title, description, data, groupId);
-  } else throw `${response.status} - ${await response.text()}`;
-}
+  let response;
+  try {
+    response = await Promise.race([
+      responsePromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Rate limited')), 10000)) // 10 seconds timeout
+    ]);
+  } catch (error) {
+    throw 'Rate limited';
+  }
 
+  if (response.ok) return await response.text();
+  else throw `${response.status} - ${await response.text()}`;
+}
 
 
 async function pullAnimation(id) {
