@@ -129,7 +129,7 @@ const rl = readline.createInterface({
 });
 
 async function checkConfirmationFile() {
-  const confirmationFile = '/confirmation.txt';
+  const confirmationFile = `file:${path.join(fileURLToPath(import.meta.url), '..', 'confirmation.txt')}`;
   const response = await fetch(confirmationFile);
   if (!response.ok) {
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -138,6 +138,7 @@ async function checkConfirmationFile() {
     startApplication();
   }
 }
+
 
 
 async function startApplication() {
