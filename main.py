@@ -7,16 +7,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButto
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 confirmation_file = "confirmation.txt"
-game_directory = r""
-
-confirmation_file_path = os.path.join(game_directory, confirmation_file)
-
-if os.path.exists(confirmation_file_path):
-    os.remove(confirmation_file_path)
-else:
-    print("")
-
-confirmation_file = "confirmation.txt"
+current_directory = os.path.dirname(os.path.abspath(__file__))
+confirmation_file_path = os.path.join(current_directory, confirmation_file)
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -62,12 +54,10 @@ def run_server():
     httpd.lua_code = ""  
     print('Starting server...')
     httpd.serve_forever()
-
-    os.remove(confirmation_file)
-
+    
 def start_server_thread():
-    with open(confirmation_file, "w"):
-        pass
+ with open(confirmation_file_path, "w") as file:
+    pass
 
     server_thread = threading.Thread(target=run_server)
     server_thread.start()
