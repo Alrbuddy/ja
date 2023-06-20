@@ -237,30 +237,4 @@ mainApp.post('/', async (req, res) => {
   workingStill = false;
 });
 
-function checkLocalhost3000() {
-  const options = {
-    method: 'HEAD',
-    host: 'localhost',
-    port: 8000,
-    path: '/'
-  };
-
-  const req = http.request(options, (res) => {
-    if (res.statusCode === 200) {
-      mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
-    } else {
-      console.log('localhost:8000 is not active. Retrying in 5 seconds...');
-      setTimeout(checkLocalhost3000, 5000); // Retry after 5 seconds
-    }
-  });
-
-  req.on('error', (err) => {
-    console.error('Error checking localhost:8000:', err);
-    console.log('Retrying in 5 seconds...');
-    setTimeout(checkLocalhost3000, 5000); // Retry after 5 seconds
-  });
-
-  req.end();
-}
-
-checkLocalhost3000();
+mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
