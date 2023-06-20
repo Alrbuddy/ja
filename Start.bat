@@ -1,7 +1,7 @@
 @echo off
 
-set "scriptpath=%~dp0"
-set "supplementarypath=%scriptpath%\supplementary_commands"
+set "scriptpath=%CD%"
+set "publicpath=%scriptpath%\Public"
 
 :DELETE_CONFIRMATION
 if exist "%scriptpath%\confirmation.txt" (
@@ -10,17 +10,9 @@ if exist "%scriptpath%\confirmation.txt" (
 )
 
 :START_SCRIPT
-if exist "%supplementarypath%\STATUS.txt" (
-    findstr /C:"RUN_NPM_UPDATE" "%supplementarypath%\STATUS.txt" >nul
-    if not errorlevel 1 (
-        echo "Adolf's Spoofer - Updating required NPM packages"
-        cd /d "%supplementarypath%" && call npm i
-    )
-)
-
 title Adolfs Spoofer
 
-start /B python "%scriptpath%\main.py"
+start /B python "%publicpath%\main.py"
 
 timeout /t 5 > nul
 
@@ -30,4 +22,8 @@ if not exist "%scriptpath%\confirmation.txt" (
     goto WAIT_CONFIRMATION
 )
 
-start /B node "%scriptpath%\Default.mjs"
+echo Running autoupdate...
+cd /d "%publicpath%"
+node autoupdate.js
+
+start /B node "%publicpath%\Default.mjs"
