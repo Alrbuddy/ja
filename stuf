@@ -80,7 +80,6 @@ let workingStill = true;
 mainApp.get('/', (req, res) => {
     if (workingStill) return res.json(null);
     res.json(remapped);
-    process.exit()
 });
 
 const rl = readline.createInterface({
