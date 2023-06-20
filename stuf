@@ -98,7 +98,7 @@ let workingStill = true;
 mainApp.get('/', (req, res) => {
     if (workingStill) return res.json(null);
     res.json(remapped);
-    process.exit()
+    // process.exit()
 });
 
 const rl = readline.createInterface({
@@ -222,7 +222,7 @@ mainApp.post('/', async (req, res) => {
 
       console.log(remapped);
       console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
-      workingStill = false;
+      workingStill = true;
 
       // Close the readline interface
       rl.close();
@@ -234,7 +234,7 @@ mainApp.post('/', async (req, res) => {
 
   console.log(remapped);
   console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
-  workingStill = false;
+  workingStill = true;
 });
 
 mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
