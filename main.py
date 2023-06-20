@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QLineEdit, QPushButto
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 confirmation_file = "confirmation.txt"
-game_directory = r"C:\Users\Abdoul\Downloads\VCODE\NewSpoofer"
+game_directory = r""
 
 confirmation_file_path = os.path.join(game_directory, confirmation_file)
 
