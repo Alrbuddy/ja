@@ -1,11 +1,3 @@
-import util from 'util';
-import readline from 'readline';
-import fetch from 'node-fetch';
-import bodyParser from 'body-parser';
-import Express from 'express';
-import { fileURLToPath } from 'url';
-import path from 'path';
-
 const CurrentVer = "PAID V7";
 const regList = util.promisify(regListCb);
 const mainApp = Express();
