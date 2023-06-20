@@ -127,7 +127,7 @@ local HttpService = game:GetService("HttpService")
 --local HttpEnabled = game:GetService("HttpService").HttpEnabled
 --HttpEnabled = true
 
-local Version = "PAID V9"
+local Version = "PAID V10"
 
 local function SendPOST(ids, cookie, port, key, mode, version)
     local url = "http://127.0.0.1:" .. port .. "/"
