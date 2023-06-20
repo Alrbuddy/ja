@@ -249,12 +249,15 @@ function checkLocalhost3000() {
     if (res.statusCode === 200) {
       mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
     } else {
-      console.log('localhost:8000 is not active. Please make sure the server is running.');
+      console.log('localhost:8000 is not active. Retrying in 5 seconds...');
+      setTimeout(checkLocalhost3000, 5000); // Retry after 5 seconds
     }
   });
 
   req.on('error', (err) => {
-    console.error('Error checking localhost:3000:', err);
+    console.error('Error checking localhost:8000:', err);
+    console.log('Retrying in 5 seconds...');
+    setTimeout(checkLocalhost3000, 5000); // Retry after 5 seconds
   });
 
   req.end();
