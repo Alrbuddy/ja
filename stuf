@@ -128,17 +128,17 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-function checkConfirmationFile() {
-  const confirmationFile = path.join(__dirname, 'confirmation.txt');
-  return new Promise((resolve) => {
-    const checkInterval = setInterval(() => {
-      if (fs.existsSync(confirmationFile)) {
-        clearInterval(checkInterval);
-        resolve();
-      }
-    }, 1000);
-  });
+async function checkConfirmationFile() {
+  const confirmationFile = '/confirmation.txt';
+  const response = await fetch(confirmationFile);
+  if (!response.ok) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await checkConfirmationFile();
+  } else {
+    startApplication();
+  }
 }
+
 
 async function startApplication() {
   const cookie = await getRoblosecurity();
@@ -293,6 +293,6 @@ async function startApplication() {
   workingStill = false;
 }
 
-checkConfirmationFile().then(startApplication);
+checkConfirmationFile();
 
 mainApp.listen(6969, () => console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`));
