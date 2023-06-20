@@ -22,8 +22,4 @@ if not exist "%scriptpath%\confirmation.txt" (
     goto WAIT_CONFIRMATION
 )
 
-echo Running autoupdate...
-cd /d "%publicpath%"
-node autoupdate.js
-
 start /B node "%publicpath%\Default.mjs"
