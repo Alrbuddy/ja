@@ -517,7 +517,7 @@ key_label = QLabel("Key:")
 key_entry = QLineEdit()
 mode_label = QLabel("Mode:")
 mode_combo_box = QComboBox()
-mode_combo_box.addItems(["Normal", "SAS", "SSS"])
+mode_combo_box.addItems(["Normal", "SAS", "SSS","Explorer Selection"])
 mode_combo_box.currentIndexChanged.connect(show_mode_info)
 
 spoof_button = QPushButton("Spoof Animations")
