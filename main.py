@@ -467,6 +467,8 @@ def show_mode_info():
         QMessageBox.information(window, "Mode Information", "SAS mode steals animations only from scripts.")
     elif mode == "SSS":
         QMessageBox.information(window, "Mode Information", "SSS mode steals animations from a specific script.")
+    elif mode == "Explorer Selection":
+        QMessageBox.information(window, "Mode Information", "Steals the selected animations from the explorer")
 
 def save_changes():
     cookie = cookie_entry.text()
