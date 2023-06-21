@@ -1,3 +1,3 @@
-Version 2.4: 
+Version 2.5: 
 
 + Added LG mode - Large game mode Beta testing
