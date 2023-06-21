@@ -1,9 +1,3 @@
-Version 2.1: 
-
-+ AutoUpdate
-
-+ fixed plugin bugs
-
-+ fixed it being stuck on starting server
+Version 2.3: 
 
 + Added LG mode - Large game mode Beta testing
