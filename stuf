@@ -132,6 +132,7 @@ mainApp.post('/', async (req, res) => {
 
   if (selectedMode === 'LG') {
     const animationEntries = Object.entries(req.body.ids);
+    const chunkSize = 10; // Define the appropriate chunk size here
     const totalChunks = Math.ceil(animationEntries.length / chunkSize);
 
     for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
