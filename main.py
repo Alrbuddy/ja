@@ -61,51 +61,177 @@ def start_server_thread():
 
     server_thread = threading.Thread(target=run_server)
     server_thread.start()
+    
+    
+LG_CODE = '''local Version = "PAID V11"
+local MarketplaceService = game:GetService("MarketplaceService")
+local HttpService = game:GetService("HttpService")
+--local HttpEnabled = game:GetService("HttpService").HttpEnabled
+--HttpEnabled = true
 
-def spoof_animations():
-    userid = userid_entry.text()
-    groupid = groupid_entry.text()
-    cookie = cookie_entry.text()
-    ownership_check = ownership_check_box.isChecked()
-    key = key_entry.text()
-    mode = mode_combo_box.currentText()
+local function SendPOST(ids, cookie, port, key, mode, version)
+    local url = "http://127.0.0.1:" .. port .. "/"
+    local data = {
+        ids = ids,
+        cookie = cookie or nil,
+        key = key or "",
+        groupID = GroupID or nil,
+        mode = Mode or nil,
+        version = Version or ""
+    }
+    HttpService:PostAsync(url, HttpService:JSONEncode(data))
+    wait(3)
+end
 
-    if cookie == "":
-        QMessageBox.warning(window, "Required Field", "Please enter a value for 'My Cookie'.")
-        return
+local function PollForResponse(port)
+    local response
+    while not response do
+        response = HttpService:JSONDecode(HttpService:GetAsync("http://127.0.0.1:" .. port .. "/"))
+        wait(3)
+    end
+    return response
+end
 
-    if key == "":
-        QMessageBox.warning(window, "Required Field", "Please enter a value for 'Key'.")
-        return
+local function ReturnUUID()
+    return tostring(HttpService:GenerateGUID())
+end
 
-    lua_code = f'''
-local myCookie = "{cookie}"
-local Key = "{key}"
-local Mode = "{mode}"
-local ownershipcheck = {str(ownership_check).lower()}
-'''
+local function SpoofTable(Table)
+    local ids = {}
 
-    if userid != "" and groupid != "":
-        QMessageBox.warning(window, "Invalid Input", "Please provide either a User ID or a Group ID, not both.")
-        return
+    for index, v in pairs(Table) do
+        local anim = v
 
-    if userid != "":
-        lua_code += f'local UserId = {userid}\n'
-        lua_code += f'local GroupID = nil\n'
-    elif groupid != "":
-        lua_code += f'local UserId = nil\n'
-        lua_code += f'local GroupID = {groupid}\n'
+        if type(v) == "number" or type(v) == "string" then
+            anim = { AnimationId = tostring(v), Name = index }
+        elseif anim.ClassName then
+            if not anim:IsA("Animation") then
+                continue
+            end
+        end
 
-    if mode == "SSS":
-        script_path, ok = QInputDialog.getText(window, "SSS Mode", "Enter the Script to Spoof Path:")
-        if ok:
-            lua_code += f'local ScriptToSpoofPath = "{script_path}"\n'
-        else:
-            QMessageBox.warning(window, "SSS Mode", "Invalid script path entered.")
-            return
+        local animId = anim.AnimationId:match("%d+")
+        if not animId or tonumber(animId) == nil or string.len(animId) <= 6 then
+            continue
+        end
 
-    lua_code += '''
-local TableSpoof = {}
+        local foundAnimInTable = false
+        for _, x in pairs(ids) do
+            if x == animId then
+                foundAnimInTable = true
+                break
+            end
+        end
+        if foundAnimInTable then
+            continue
+        end
+
+        if UserId and ownershipcheck == true or GroupID and ownershipcheck == true then
+            local success, productInfo = pcall(function()
+                return MarketplaceService:GetProductInfo(animId, Enum.InfoType.Asset)
+            end)
+
+            if not success then
+                print("Animation does not exist:", animId)
+                continue
+            end
+
+            if success and productInfo.AssetTypeId == Enum.AssetType.Animation.Value then
+                local isOwnedByLocalPlayer = not GroupID and UserId and productInfo.Creator.CreatorTargetId == UserId
+                local isOwnedByGroup = GroupID and not UserId and productInfo.Creator.CreatorTargetId == GroupID
+                local isOwnedByGroupOrUser = GroupID and UserId and (productInfo.Creator.CreatorTargetId == GroupID or productInfo.Creator.CreatorTargetId == UserId)
+
+                if isOwnedByLocalPlayer then
+                    print("Animation", animId, "is created by the local player.")
+                    continue
+                elseif isOwnedByGroup then
+                    print("Animation", animId, "is created by the Group.")
+                    continue
+                elseif isOwnedByGroupOrUser then
+                    print("Animation", animId, "is created by the Group/User.")
+                    continue
+                end
+            end
+        end
+
+        if Mode == "Table Spoof and Return 1" or Mode == "Table Spoof and Return 2" then
+            ids[index] = animId
+        else
+            ids[anim.Name .. ReturnUUID()] = animId
+        end
+    end
+
+    return ids
+end
+
+local function GenerateIDList()
+    local ids = {}
+    if Mode == "LG" then
+        ids = SpoofTable(game:GetDescendants())
+    end
+    return ids
+end
+
+if Mode == "Help" then
+    for mod, desc in pairs(Modes) do
+        print(mod .. " - " .. desc)
+    end
+    return
+end
+
+local idsToGet = GenerateIDList()
+
+while next(idsToGet) do
+    local batch = {}
+    local count = 0
+
+    for id, value in pairs(idsToGet) do
+        count = count + 1
+        batch[id] = value
+
+        if count == BatchSize or next(idsToGet, id) == nil then
+            local success, errorMsg = pcall(function()
+                SendPOST(batch, myCookie, "6969", Key, GroupID, Version)
+                local newIDList = PollForResponse("6969")
+
+                if Mode == "LG" then
+                    for oldID, newID in pairs(newIDList) do
+                        for _, anim in ipairs(game:GetDescendants()) do
+                            if anim:IsA("Animation") and string.find(tostring(anim.AnimationId), tostring(oldID)) then
+                                local previousId = anim.AnimationId
+                                anim.AnimationId = "rbxassetid://" .. tostring(newID)
+
+                                if anim.AnimationId == "rbxassetid://" .. tostring(newID) then
+                                    print("Animation ID updated successfully for:", anim.Name)
+                                else
+                                    print("Failed to update Animation ID for:", anim.Name)
+                                    print("Previous ID:", previousId)
+                                    print("New ID:", anim.AnimationId)
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+
+            if not success then
+                warn("Error occurred during batch processing:", errorMsg)
+            end
+
+            -- Remove processed IDs from idsToGet
+            for id in pairs(batch) do
+                idsToGet[id] = nil
+            end
+
+            count = 0 -- Reset count for the next batch
+            batch = {} -- Clear the batch table
+
+            wait(10) -- Wait for 10 seconds before sending the next batch
+        end
+    end
+end'''
+
+NOT_LG_CODE = '''local TableSpoof = {}
 for i, v in pairs(workspace:GetDescendants()) do
     if v:IsA("PackageLink") then
         v:Destroy()
@@ -117,7 +243,7 @@ local HttpService = game:GetService("HttpService")
 --local HttpEnabled = game:GetService("HttpService").HttpEnabled
 --HttpEnabled = true
 
-local Version = "PAID V10"
+local Version = "PAID V11"
 
 local function SendPOST(ids, cookie, port, key, mode, version)
     local url = "http://127.0.0.1:" .. port .. "/"
@@ -244,77 +370,6 @@ local skipAnims = {
     [507770677] = true,
 }
 
-local function SpoofLG(Table)
-    local ids = {}
-    local count = 0
-
-    for index, v in pairs(Table) do
-        local anim = v
-
-        if type(v) == "number" or type(v) == "string" then
-            anim = { AnimationId = tostring(v), Name = index }
-        elseif anim.ClassName then
-            if not anim:IsA("Animation") then
-                continue
-            end
-        end
-
-        local animId = anim.AnimationId:match("%d+")
-        if not animId or tonumber(animId) == nil or string.len(animId) <= 6 then
-            continue
-        end
-
-        count = count + 1
-        ids[index] = animId
-
-        if count == 10 then
-            SendPOST(ids, myCookie, "6969", Key, GroupID, Version)
-            local newIDList = PollForResponse("6969")
-            count = 0
-            ids = {}
-
-            for oldID, newID in pairs(newIDList) do
-                for _, anim in ipairs(Table) do
-                    if anim:IsA("Animation") and string.find(tostring(anim.AnimationId), tostring(oldID)) then
-                        local previousId = anim.AnimationId
-                        anim.AnimationId = "rbxassetid://" .. tostring(newID)
-
-                        if anim.AnimationId == "rbxassetid://" .. tostring(newID) then
-                            print("Animation ID updated successfully for:", anim.Name)
-                        else
-                            print("Failed to update Animation ID for:", anim.Name)
-                            print("Previous ID:", previousId)
-                            print("New ID:", anim.AnimationId)
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    if count > 0 then
-        SendPOST(ids, myCookie, "6969", Key, GroupID, Version)
-        local newIDList = PollForResponse("6969")
-
-        for oldID, newID in pairs(newIDList) do
-            for _, anim in ipairs(Table) do
-                if anim:IsA("Animation") and string.find(tostring(anim.AnimationId), tostring(oldID)) then
-                    local previousId = anim.AnimationId
-                    anim.AnimationId = "rbxassetid://" .. tostring(newID)
-
-                    if anim.AnimationId == "rbxassetid://" .. tostring(newID) then
-                        print("Animation ID updated successfully for:", anim.Name)
-                    else
-                        print("Failed to update Animation ID for:", anim.Name)
-                        print("Previous ID:", previousId)
-                        print("New ID:", anim.AnimationId)
-                    end
-                end
-            end
-        end
-    end
-end
-
 local ScriptPaths = {}
 
 local function SpoofScript(Path)
@@ -401,8 +456,6 @@ local function GenerateIDList()
         ids = SpoofTable(game:GetDescendants())
     elseif Mode == "Explorer Selection" then
         ids = SpoofTable(game.Selection:Get())
-    elseif Mode == "LG" then
-        ids = SpoofLG(game:GetDescendants())
     elseif Mode == "Table Spoof" then
         if not TableSpoof then
             warn("TableSpoof doesn't exist")
@@ -517,9 +570,62 @@ if Mode == "Normal" or Mode == "Explorer Selection" then
             end
         end
     end
-end
-'''
+end'''
 
+def spoof_animations():
+    userid = userid_entry.text()
+    groupid = groupid_entry.text()
+    cookie = cookie_entry.text()
+    ownership_check = ownership_check_box.isChecked()
+    key = key_entry.text()
+    mode = mode_combo_box.currentText()
+
+    if cookie == "":
+        QMessageBox.warning(window, "Required Field", "Please enter a value for 'My Cookie'.")
+        return
+
+    if key == "":
+        QMessageBox.warning(window, "Required Field", "Please enter a value for 'Key'.")
+        return
+
+    lua_code_table = []
+    lua_code_table.append(f'local myCookie = "{cookie}"')
+    lua_code_table.append(f'local Key = "{key}"')
+    lua_code_table.append(f'local Mode = "{mode}"')
+    lua_code_table.append(f'local ownershipcheck = {str(ownership_check).lower()}')
+
+    if userid != "" and groupid != "":
+        QMessageBox.warning(window, "Invalid Input", "Please provide either a User ID or a Group ID, not both.")
+        return
+
+    if userid != "":
+        lua_code_table.append(f'local UserId = {userid}')
+        lua_code_table.append('local GroupID = nil')
+    elif groupid != "":
+        lua_code_table.append('local UserId = nil')
+        lua_code_table.append(f'local GroupID = {groupid}')
+
+    if mode == "SSS":
+        script_path, ok = QInputDialog.getText(window, "SSS Mode", "Enter the Script to Spoof Path:")
+        if ok:
+            lua_code_table.append(f'local ScriptToSpoofPath = "{script_path}"')
+        else:
+            QMessageBox.warning(window, "SSS Mode", "Invalid script path entered.")
+            return
+
+    if mode == "LG":
+        batch_size, ok = QInputDialog.getInt(window, "LG Mode", "Enter the batch size:")
+        if ok:
+            lua_code_table.append(f'local BatchSize = {batch_size}')
+            lua_code_table.append(LG_CODE)
+        else:
+            QMessageBox.warning(window, "LG Mode", "Invalid batch size entered.")
+            return
+    else:
+        lua_code_table.append(NOT_LG_CODE)
+
+    lua_code = '\n'.join(lua_code_table)
+    
     start_server_thread()
 
     try:
