@@ -469,6 +469,8 @@ def show_mode_info():
         QMessageBox.information(window, "Mode Information", "SSS mode steals animations from a specific script.")
     elif mode == "Explorer Selection":
         QMessageBox.information(window, "Mode Information", "Steals the selected animations from the explorer")
+    elif mode == "LG":
+        QMessageBox.information(window, "Mode Information", "Large game mode Beta testing It basically is compatible with large games nothing else")
 
 def save_changes():
     cookie = cookie_entry.text()
@@ -519,7 +521,7 @@ key_label = QLabel("Key:")
 key_entry = QLineEdit()
 mode_label = QLabel("Mode:")
 mode_combo_box = QComboBox()
-mode_combo_box.addItems(["Normal", "SAS", "SSS","Explorer Selection"])
+mode_combo_box.addItems(["Normal", "SAS", "SSS","Explorer Selection","LG"])
 mode_combo_box.currentIndexChanged.connect(show_mode_info)
 
 spoof_button = QPushButton("Spoof Animations")
