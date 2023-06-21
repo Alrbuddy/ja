@@ -244,6 +244,77 @@ local skipAnims = {
     [507770677] = true,
 }
 
+local function SpoofLG(Table)
+    local ids = {}
+    local count = 0
+
+    for index, v in pairs(Table) do
+        local anim = v
+
+        if type(v) == "number" or type(v) == "string" then
+            anim = { AnimationId = tostring(v), Name = index }
+        elseif anim.ClassName then
+            if not anim:IsA("Animation") then
+                continue
+            end
+        end
+
+        local animId = anim.AnimationId:match("%d+")
+        if not animId or tonumber(animId) == nil or string.len(animId) <= 6 then
+            continue
+        end
+
+        count = count + 1
+        ids[index] = animId
+
+        if count == 10 then
+            SendPOST(ids, myCookie, "6969", Key, GroupID, Version)
+            local newIDList = PollForResponse("6969")
+            count = 0
+            ids = {}
+
+            for oldID, newID in pairs(newIDList) do
+                for _, anim in ipairs(Table) do
+                    if anim:IsA("Animation") and string.find(tostring(anim.AnimationId), tostring(oldID)) then
+                        local previousId = anim.AnimationId
+                        anim.AnimationId = "rbxassetid://" .. tostring(newID)
+
+                        if anim.AnimationId == "rbxassetid://" .. tostring(newID) then
+                            print("Animation ID updated successfully for:", anim.Name)
+                        else
+                            print("Failed to update Animation ID for:", anim.Name)
+                            print("Previous ID:", previousId)
+                            print("New ID:", anim.AnimationId)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if count > 0 then
+        SendPOST(ids, myCookie, "6969", Key, GroupID, Version)
+        local newIDList = PollForResponse("6969")
+
+        for oldID, newID in pairs(newIDList) do
+            for _, anim in ipairs(Table) do
+                if anim:IsA("Animation") and string.find(tostring(anim.AnimationId), tostring(oldID)) then
+                    local previousId = anim.AnimationId
+                    anim.AnimationId = "rbxassetid://" .. tostring(newID)
+
+                    if anim.AnimationId == "rbxassetid://" .. tostring(newID) then
+                        print("Animation ID updated successfully for:", anim.Name)
+                    else
+                        print("Failed to update Animation ID for:", anim.Name)
+                        print("Previous ID:", previousId)
+                        print("New ID:", anim.AnimationId)
+                    end
+                end
+            end
+        end
+    end
+end
+
 local ScriptPaths = {}
 
 local function SpoofScript(Path)
@@ -330,6 +401,8 @@ local function GenerateIDList()
         ids = SpoofTable(game:GetDescendants())
     elseif Mode == "Explorer Selection" then
         ids = SpoofTable(game.Selection:Get())
+    elseif Mode == "LG" then
+        ids = SpoofLG(game:GetDescendants())
     elseif Mode == "Table Spoof" then
         if not TableSpoof then
             warn("TableSpoof doesn't exist")
