@@ -503,41 +503,35 @@ if Mode == "SAS" or Mode == "SSS" then
     local directories = {
         game.Workspace,
         game.ReplicatedStorage,
-        game.StarterPlayer,
         game.ServerScriptService,
         game.ServerStorage,
-        game.StarterGui,
         game.StarterPlayer.StarterCharacterScripts,
-        game.StarterPlayer.StarterPlayerScripts,
         game.StarterPack,
-        game.Lighting
     }
 
     if Mode == "SAS" then
         for _, directory in ipairs(directories) do
             for _, script in ipairs(directory:GetDescendants()) do
-                if table.find(ScriptPaths, script:GetFullName()) then
-                    local scriptType = script.ClassName
-                    if scriptType == "Script" or scriptType == "ModuleScript" or scriptType == "LocalScript" then
-                        local success = false
-                        local newSource = ""
+                local scriptType = script.ClassName
+                if scriptType == "Script" or scriptType == "ModuleScript" or scriptType == "LocalScript" then
+                    local success = false
+                    local newSource = ""
 
-                        repeat
-                            success, newSource = pcall(function()
-                                local source = script.Source
-                                for old, new in pairs(newIDList) do
-                                    source = source:gsub(old, new)
-                                end
-                                return source
-                            end)
-
-                            if success then
-                                script.Source = newSource
-                            else
-                                warn("Failed to update source for", scriptType, "in", script:GetFullName())
+                    repeat
+                        success, newSource = pcall(function()
+                            local source = script.Source
+                            for old, new in pairs(newIDList) do
+                                source = source:gsub(old, new)
                             end
-                        until success and script.Source == newSource
-                    end
+                            return source
+                        end)
+
+                        if success then
+                            script.Source = newSource
+                        else
+                            warn("Failed to update source for", scriptType, "in", script:GetFullName())
+                        end
+                    until success and script.Source == newSource
                 end
             end
         end
