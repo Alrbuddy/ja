@@ -370,8 +370,6 @@ local skipAnims = {
     [507770677] = true,
 }
 
-local ScriptPaths = {}
-
 local function SpoofScript(Path)
     local anims = {}
     local scripts = {}
@@ -383,69 +381,62 @@ local function SpoofScript(Path)
         local directories = {
             game.Workspace,
             game.ReplicatedStorage,
-            game.StarterPlayer,
             game.ServerScriptService,
             game.ServerStorage,
-            game.StarterGui,
             game.StarterPlayer.StarterCharacterScripts,
-            game.StarterPlayer.StarterPlayerScripts,
             game.StarterPack,
-            game.Lighting
         }
 
         for _, directory in ipairs(directories) do
             for _, script in ipairs(directory:GetDescendants()) do
-                table.insert(scripts, script)
-            end
-        end
-
-        ScriptPaths = {}
-    end
-
-    for _, script in ipairs(scripts) do
-        if script:IsA("Script") or script:IsA("LocalScript") or script:IsA("ModuleScript") then
-            local source = script.Source
-            if not source then
-                break
-            end
-            local tableSource = {}
-            for word in source:gmatch("%S+") do
-                table.insert(tableSource, word)
-            end
-            for _, v in ipairs(tableSource) do
-                if v and string.match(v, "%d+") and string.len(string.match(v, "%d+")) > 6 then
-                    local animId = tonumber(v:match("%d+"))
-
-                    if ownershipcheck == true then
-                        local success, productInfo = pcall(function()
-                            return marketplaceService:GetProductInfo(animId, Enum.InfoType.Asset)
-                        end)
-                        if success and productInfo.AssetTypeId == Enum.AssetType.Animation.Value then
-                            if not GroupID and UserId and productInfo.Creator.CreatorTargetId == UserId then
-                                print("Animation", animId, "is created by the local player.")
-                                break
-                            elseif GroupID and not UserId and productInfo.Creator.CreatorTargetId == GroupID then
-                                print("Animation", animId, "is created by the Group.")
-                                break
-                            elseif GroupID and UserId and (productInfo.Creator.CreatorTargetId == GroupID or productInfo.Creator.CreatorTargetId == UserId) then
-                                print("Animation", animId, "is created by the Group/User.")
-                                break
-                            end
-                        end
-                    end
-
-                    if skipAnims[animId] then
-                        print("Skipping animation", animId, "because it's from Roblox.")
-                        break
-                    end                        
-                    anims[animId] = animId
-                    if Mode == "SAS" then
-                        table.insert(ScriptPaths, script:GetFullName())
-                    end
+                if script:IsA("LuaSourceContainer") then
+                    table.insert(scripts, script)
                 end
             end
         end
     end
+
+    for _, script in ipairs(scripts) do
+        local source = script.Source
+        if not source then
+            break
+        end
+        local tableSource = {}
+        for word in source:gmatch("%S+") do
+            table.insert(tableSource, word)
+        end
+        for _, v in ipairs(tableSource) do
+            if v and string.match(v, "%d+") and string.len(string.match(v, "%d+")) > 6 then
+                local animId = tonumber(v:match("%d+"))
+
+                if ownershipcheck == true then
+                    local success, productInfo = pcall(function()
+                        return marketplaceService:GetProductInfo(animId, Enum.InfoType.Asset)
+                    end)
+                    if success and productInfo.AssetTypeId == Enum.AssetType.Animation.Value then
+                        if not GroupID and UserId and productInfo.Creator.CreatorTargetId == UserId then
+                            print("Animation", animId, "is created by the local player.")
+                            break
+                        elseif GroupID and not UserId and productInfo.Creator.CreatorTargetId == GroupID then
+                            print("Animation", animId, "is created by the Group.")
+                            break
+                        elseif GroupID and UserId and (productInfo.Creator.CreatorTargetId == GroupID or productInfo.Creator.CreatorTargetId == UserId) then
+                            print("Animation", animId, "is created by the Group/User.")
+                            break
+                        end
+                    end
+                end
+
+                if skipAnims[animId] then
+                    print("Skipping animation", animId, "because it's from Roblox.")
+                    break
+                end
+
+                anims[animId] = animId
+            end
+        end
+    end
+
     return anims
 end
 
