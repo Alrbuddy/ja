@@ -1,3 +1,5 @@
-Version 2.5: 
+Version 2.6: 
 
 + Added LG mode - Large game mode Beta testing
+
++ Fixed SAS mode
