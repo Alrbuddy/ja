@@ -1,5 +1,5 @@
-Version 2.6: 
+Version 2.7: 
 
-+ Added LG mode - Large game mode Beta testing
++ fixed readline bug
 
-+ Fixed SAS mode
+- removed retry for lg mode
