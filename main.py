@@ -63,7 +63,7 @@ def start_server_thread():
     server_thread.start()
     
     
-LG_CODE = '''local Version = "PAID V11"
+LG_CODE = '''local Version = "PAID V12"
 local MarketplaceService = game:GetService("MarketplaceService")
 local HttpService = game:GetService("HttpService")
 --local HttpEnabled = game:GetService("HttpService").HttpEnabled
@@ -218,15 +218,14 @@ while next(idsToGet) do
                 warn("Error occurred during batch processing:", errorMsg)
             end
 
-            -- Remove processed IDs from idsToGet
-            for id in pairs(batch) do
+         for id in pairs(batch) do
                 idsToGet[id] = nil
             end
 
-            count = 0 -- Reset count for the next batch
-            batch = {} -- Clear the batch table
+            count = 0
+            batch = {}
 
-            wait(10) -- Wait for 10 seconds before sending the next batch
+            wait(5)
         end
     end
 end'''
@@ -243,7 +242,7 @@ local HttpService = game:GetService("HttpService")
 --local HttpEnabled = game:GetService("HttpService").HttpEnabled
 --HttpEnabled = true
 
-local Version = "PAID V11"
+local Version = "PAID V12"
 
 local function SendPOST(ids, cookie, port, key, mode, version)
     local url = "http://127.0.0.1:" .. port .. "/"
