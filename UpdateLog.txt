@@ -1,7 +1,1 @@
-Version 2.8: 
-
-+ fixed readline bug
-
-+ set the max batch size cap to 30
-
-- removed retry for lg mode
+Check back later!
