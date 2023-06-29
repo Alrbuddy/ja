@@ -78,11 +78,9 @@ const remapped = {};
 let workingStill = true;
 
 mainApp.get('/', (req, res) => {
-  if (workingStill) return res.json(null);
-  res.json(remapped);
-  if (selectedmode !== 'LG') {
-    process.exit();
-  }
+    if (workingStill) return res.json(null);
+    res.json(remapped);
+    // process.exit()
 });
 
 mainApp.post('/', async (req, res) => {
