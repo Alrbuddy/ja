@@ -597,7 +597,7 @@ def spoof_animations():
             QMessageBox.warning(window, "SSS Mode", "Invalid script path entered.")
             return
 
-     if mode == "LG":
+    if mode == "LG":
         batch_size, ok = QInputDialog.getInt(window, "LG Mode", "Enter the batch size:")
         if ok:
             if batch_size > 30:
@@ -618,6 +618,7 @@ def spoof_animations():
     try:
         response = requests.post("http://localhost:8000", data=lua_code.encode('utf-8'))
         if response.status_code == 200:
+            QMessageBox.information(window, "Success", "Starting...")
         else:
             QMessageBox.warning(window, "Error", f"Error: {response.status_code}")
     except requests.exceptions.RequestException as e:
