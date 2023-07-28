@@ -63,7 +63,7 @@ def start_server_thread():
     server_thread.start()
     
     
-LG_CODE = '''local Version = "PAID V15"
+LG_CODE = '''local Version = "PAID V16.1"
 local MarketplaceService = game:GetService("MarketplaceService")
 local HttpService = game:GetService("HttpService")
 --local HttpEnabled = game:GetService("HttpService").HttpEnabled
@@ -218,20 +218,20 @@ while next(idsToGet) do
                 warn("Error occurred during batch processing:", errorMsg)
             end
 
-            -- Remove processed IDs from idsToGet
-            for id in pairs(batch) do
+         for id in pairs(batch) do
                 idsToGet[id] = nil
             end
 
-            count = 0 -- Reset count for the next batch
-            batch = {} -- Clear the batch table
+            count = 0
+            batch = {}
 
-            wait(10) -- Wait for 10 seconds before sending the next batch
+            wait(5)
         end
     end
 end'''
 
-NOT_LG_CODE = '''local TableSpoof = {}
+NOT_LG_CODE = '''
+local TableSpoof = {}
 for i, v in pairs(workspace:GetDescendants()) do
     if v:IsA("PackageLink") then
         v:Destroy()
@@ -243,7 +243,7 @@ local HttpService = game:GetService("HttpService")
 --local HttpEnabled = game:GetService("HttpService").HttpEnabled
 --HttpEnabled = true
 
-local Version = "PAID V15"
+local Version = "PAID V16.1"
 
 local function SendPOST(ids, cookie, port, key, mode, version)
     local url = "http://127.0.0.1:" .. port .. "/"
@@ -570,7 +570,9 @@ if Mode == "Normal" or Mode == "Explorer Selection" then
             end
         end
     end
-end'''
+end
+
+'''
 
 def spoof_animations():
     userid = userid_entry.text()
@@ -616,6 +618,9 @@ def spoof_animations():
     if mode == "LG":
         batch_size, ok = QInputDialog.getInt(window, "LG Mode", "Enter the batch size:")
         if ok:
+            if batch_size > 30:
+                QMessageBox.warning(window, "LG Mode", "Batch size cannot exceed 30.")
+                return
             lua_code_table.append(f'local BatchSize = {batch_size}')
             lua_code_table.append(LG_CODE)
         else:
@@ -631,7 +636,7 @@ def spoof_animations():
     try:
         response = requests.post("http://localhost:8000", data=lua_code.encode('utf-8'))
         if response.status_code == 200:
-            print("Preparing..")
+            QMessageBox.information(window, "Success", "Starting...")
         else:
             QMessageBox.warning(window, "Error", f"Error: {response.status_code}")
     except requests.exceptions.RequestException as e:
@@ -649,7 +654,7 @@ def show_mode_info():
     elif mode == "Explorer Selection":
         QMessageBox.information(window, "Mode Information", "Steals the selected animations from the explorer")
     elif mode == "LG":
-        QMessageBox.information(window, "Mode Information", "Large game mode Beta testing It basically is compatible with large games nothing else")
+        QMessageBox.information(window, "Mode Information", "Not working currently, don't use.")
 
 def save_changes():
     cookie = cookie_entry.text()
@@ -700,7 +705,7 @@ key_label = QLabel("Key:")
 key_entry = QLineEdit()
 mode_label = QLabel("Mode:")
 mode_combo_box = QComboBox()
-mode_combo_box.addItems(["Normal", "SAS", "SSS","Explorer Selection","LG"])
+mode_combo_box.addItems(["Normal", "SAS", "SSS","Explorer Selection","LG-Not working"])
 mode_combo_box.currentIndexChanged.connect(show_mode_info)
 
 spoof_button = QPushButton("Spoof Animations")
