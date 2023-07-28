@@ -1,4 +1,4 @@
-const CurrentVer = "PAID V15"
+const CurrentVer = "PAID V16.1"
 
 const regList = util.promisify(regListCb);
 const mainApp = Express();
@@ -76,11 +76,28 @@ mainApp.use(bodyParser.json());
 
 const remapped = {};
 let workingStill = true;
+let stopReuploading = false;
+
+function listenForKeyboardInput() {
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  process.stdin.setEncoding('utf8');
+
+  process.stdin.on('data', (key) => {
+    if (key === '\u0006') { // Check if the input is CTRL + F (CTRL + f in ASCII)
+      stopReuploading = true;
+    }
+  });
+}
+
+const GREEN = '\x1b[32m';
+const RED = '\x1b[31m';
+const ORANGE = '\x1b[33m';
+const RESET = '\x1b[0m';
 
 mainApp.get('/', (req, res) => {
-    if (workingStill) return res.json(null);
-    res.json(remapped);
-    process.exit()
+  if (workingStill) return res.json(null);
+  res.json(remapped);
 });
 
 const rl = readline.createInterface({
@@ -89,87 +106,90 @@ const rl = readline.createInterface({
 });
 
 mainApp.post('/', async (req, res) => {
-    const providedKey = req.body.key;
-    const selectedmode = req.body.mode;
-    const version = req.body.version;
-      
-    if (!validKeys.includes(providedKey)) {
-      console.log('Invalid key');
-      return;
-    }
-  
-    const cookie = req.body.cookie || (await getRoblosecurity());
-    if (!cookie) {
-      console.error('Cookie not found/Invalid');
-      return;
-    }
-  
-    await noblox.setCookie(cookie);
-    const csrf = await noblox.getGeneralToken();
-  
-    res.status(204).send();
-  
-    const nameTab = ["abvx", "jdfk", "qwes", "rtop", "zcma", "bqwe", "ahjf", "fhgv", "gqwe", "tsvf", "lmpo", "zxvb", "aplo", "qwye", "nbvc", "yash", "klnm", "mnbv", "opqr", "xyzn", "trew", "jkli", "wqer", "qwas", "vcxz", "bhji", "lqwe", "zxmc", "vbnm", "aqwe", "dhfg", "xtyu", "vcxa", "edfg", "jklp", "ydfg", "lkjh", "erty", "cxza", "tyui", "bnmp", "ploi", "jyhn", "yvbn", "nmkl", "khdf", "xpoi", "vfre", "asdc", "qwaszx", "rtyu", "vgtr", "zxcvb", "xswq", "cdew", "ujnm", "fghj", "oiuy", "yuih", "wqerf", "thju", "jklm", "nbvm", "asdqwe", "hjkl", "poiu", "plkj", "vcdx", "mnb", "gfds", "nbvx", "xzvb", "fdsa", "uiop", "xcvb", "vbn", "xasz", "qweqwe", "zxcf", "asdfg", "bnvc", "mjnh", "gfdsaq", "plok", "cxfd", "mnbvc", "qwedsa", "jhgf", "rty", "vgf", "kjhg", "yhtg", "xse", "fghjk", "vcbn", "xswe", "bnm", "yuiop", "hjklp", "qwsa", "sdfg", "qaz", "wqasd", "zxc", "nbv", "bgfd", "cvbnm", "uytr", "mnbvca", "wqse", "lkjhgf", "zxcv", "bnx", "rtui", "awqe", "rtyui", "aqws", "ytgh", "xcv", "ghjk", "oiuyt", "vbnma", "qweas", "asdf", "oiuyh", "mnbva", "xqwe", "hgfdsa", "vbnmi", "qazx", "plokij", "ghjkl", "ytre", "zxcvas", "bvc", "klmn", "nbvcd", "fghjkl", "zxcvbn", "xsw", "lkj", "bnvx", "uytrf", "werty", "ghfd", "qwerty", "hjklpo", "dfgh", "cxz", "nmklj", "qazws", "uyt", "plmn", "qazwsxedc", "vbnc", "xc", "cghj", "bvcx", "aqw", "zvbn", "yuioplk", "qwer", "dfg", "awq", "rtyuio", "hjk", "qw", "yhg", "fgrtgbr", "abxc", "xznm", "trfv", "qwerf", "yui", "nmklp", "zsxc", "qwera", "hgfd", "poiuyt", "oiuhg", "yhb", "plkm", "aqweqw", "kljh", "zxcvm", "gfdsa", "zxcasd", "yxcvb", "mnvb", "gfdsaqw", "jhy", "mklo", "vnm", "dfrg", "zxcd", "jklh", "lkjhgfds", "qsdf", "ghjklo", "vfdx", "zxvn", "zxcdsa", "jhgfdsa", "qazwsxed", "kloi", "polk", "azxs", "yhgtr", "kjhgfd", "vbnmk", "ytrew", "jklmn", "asxdcf", "bvnm", "fdxs", "kjhy", "xswaq", "poiuh", "vfds", "nmbv", "fdcv", "qwerq", "cvbn", "xaszx", "lkjhgfd", "mnbvcx", "wqas", "vcxzbn", "klpoi", "vcxzsd", "ertyu", "vcxzas", "qwesd", "mlkj", "vcxzml", "vcx", "wqaszx", "vcxznb", "vcxzb", "vcxzasd", "vcxzlk", "vcxzq", "vcxzj", "vcxzm", "vcxzgf", "vcxzs", "vcxzv", "vcxzoi", "vcxzr", "vcxzhy", "vcxzt", "vcxzcv", "vcxzuy", "vcxzp", "vcxzdf", "vcxzxc", "vcxzpl", "vcxzui", "vcxzfg", "vcxzh", "vcxzty", "vcxzbnm", "vcxzwe", "vcxzrt", "vcxzgh", "vcxzjk", "vcxzxcv", "vcxzlkj", "vcxzpoi", "vcxznm", "vcxzqw", "vcxzvf", "vcxzasdf", "vcxzmnb", "vcxzxcvb", "vcxzkl", "vcxzds", "vcxztr", "vcxzgb", "vcxzxcz", "vcxzqwerty", "vcxzxc", "vcxzasx", "vcxzvbn", "vcxzlkjh", "vcxzxcvbn", "vcxzpol", "vcxzjh", "vcxzrty", "vcxznbv", "vcxzqwq", "vcxzuyt", "vcxzgfdsa", "vcxzlkjhg", "vcxzdsaqw", "vcxzasdfg", "vcxzrewq", "vcxzpoiuy", "vcxzxcvb", "vcxznmkl", "vcxzwq", "vcxzasqw", "vcxzxcv", "vcxzxczxc", "vcxzmlkj", "vcxzpoiuyt", "vcxzlkjhf", "vcxznbvc", "vcxzmnbv", "vcxzpoiuytr", "vcxzlkjhgf", "vcxzqwertas", "vcxzlkj", "vcxzlkjhgd", "vcxzgfds", "vcxzn", "vcxzxcvbnm"];    
-    const maxAnimations = 150;
-    const animationCount = Object.entries(req.body.ids).length;
-  
-    if (animationCount > maxAnimations) {
-      console.log('Warning: This game has a lot of animations. This may or may not take a while.');
+  const providedKey = req.body.key;
+  const selectedmode = req.body.mode;
+  const version = req.body.version;
+
+  if (!validKeys.includes(providedKey)) {
+    console.log(RED, 'Invalid key', RESET);
+    return;
+  }
+
+  const cookie = req.body.cookie || (await getRoblosecurity());
+  if (!cookie) {
+    console.error(RED, 'Cookie not found/Invalid', RESET);
+    return;
+  }
+
+  await noblox.setCookie(cookie);
+  const csrf = await noblox.getGeneralToken();
+
+  res.status(204).send();
+
+  const nameTab = ["abvx", "jdfk", "qwes", "rtop", "zcma", "bqwe", "ahjf", "fhgv", "gqwe", "tsvf", "lmpo", "zxvb", "aplo", "qwye", "nbvc", "yash", "klnm", "mnbv", "opqr", "xyzn", "trew", "jkli", "wqer", "qwas", "vcxz", "bhji", "lqwe", "zxmc", "vbnm", "aqwe", "dhfg", "xtyu", "vcxa", "edfg", "jklp", "ydfg", "lkjh", "erty", "cxza", "tyui", "bnmp", "ploi", "jyhn", "yvbn", "nmkl", "khdf", "xpoi", "vfre", "asdc", "qwaszx", "rtyu", "vgtr", "zxcvb", "xswq", "cdew", "ujnm", "fghj", "oiuy", "yuih", "wqerf", "thju", "jklm", "nbvm", "asdqwe", "hjkl", "poiu", "plkj", "vcdx", "mnb", "gfds", "nbvx", "xzvb", "fdsa", "uiop", "xcvb", "vbn", "xasz", "qweqwe", "zxcf", "asdfg", "bnvc", "mjnh", "gfdsaq", "plok", "cxfd", "mnbvc", "qwedsa", "jhgf", "rty", "vgf", "kjhg", "yhtg", "xse", "fghjk", "vcbn", "xswe", "bnm", "yuiop", "hjklp", "qwsa", "sdfg", "qaz", "wqasd", "zxc", "nbv", "bgfd", "cvbnm", "uytr", "mnbvca", "wqse", "lkjhgf", "zxcv", "bnx", "rtui", "awqe", "rtyui", "aqws", "ytgh", "xcv", "ghjk", "oiuyt", "vbnma", "qweas", "asdf", "oiuyh", "mnbva", "xqwe", "hgfdsa", "vbnmi", "qazx", "plokij", "ghjkl", "ytre", "zxcvas", "bvc", "klmn", "nbvcd", "fghjkl", "zxcvbn", "xsw", "lkj", "bnvx", "uytrf", "werty", "ghfd", "qwerty", "hjklpo", "dfgh", "cxz", "nmklj", "qazws", "uyt", "plmn", "qazwsxedc", "vbnc", "xc", "cghj", "bvcx", "aqw", "zvbn", "yuioplk", "qwer", "dfg", "awq", "rtyuio", "hjk", "qw", "yhg", "fgrtgbr", "abxc", "xznm", "trfv", "qwerf", "yui", "nmklp", "zsxc", "qwera", "hgfd", "poiuyt", "oiuhg", "yhb", "plkm", "aqweqw", "kljh", "zxcvm", "gfdsa", "zxcasd", "yxcvb", "mnvb", "gfdsaqw", "jhy", "mklo", "vnm", "dfrg", "zxcd", "jklh", "lkjhgfds", "qsdf", "ghjklo", "vfdx", "zxvn", "zxcdsa", "jhgfdsa", "qazwsxed", "kloi", "polk", "azxs", "yhgtr", "kjhgfd", "vbnmk", "ytrew", "jklmn", "asxdcf", "bvnm", "fdxs", "kjhy", "xswaq", "poiuh", "vfds", "nmbv", "fdcv", "qwerq", "cvbn", "xaszx", "lkjhgfd", "mnbvcx", "wqas", "vcxzbn", "klpoi", "vcxzsd", "ertyu", "vcxzas", "qwesd", "mlkj", "vcxzml", "vcx", "wqaszx", "vcxznb", "vcxzb", "vcxzasd", "vcxzlk", "vcxzq", "vcxzj", "vcxzm", "vcxzgf", "vcxzs", "vcxzv", "vcxzoi", "vcxzr", "vcxzhy", "vcxzt", "vcxzcv", "vcxzuy", "vcxzp", "vcxzdf", "vcxzxc", "vcxzpl", "vcxzui", "vcxzfg", "vcxzh", "vcxzty", "vcxzbnm", "vcxzwe", "vcxzrt", "vcxzgh", "vcxzjk", "vcxzxcv", "vcxzlkj", "vcxzpoi", "vcxznm", "vcxzqw", "vcxzvf", "vcxzasdf", "vcxzmnb", "vcxzxcvb", "vcxzkl", "vcxzds", "vcxztr", "vcxzgb", "vcxzxcz", "vcxzqwerty", "vcxzxc", "vcxzasx", "vcxzvbn", "vcxzlkjh", "vcxzxcvbn", "vcxzpol", "vcxzjh", "vcxzrty", "vcxznbv", "vcxzqwq", "vcxzuyt", "vcxzgfdsa", "vcxzlkjhg", "vcxzdsaqw", "vcxzasdfg", "vcxzrewq", "vcxzpoiuy", "vcxzxcvb", "vcxznmkl", "vcxzwq", "vcxzasqw", "vcxzxcv", "vcxzxczxc", "vcxzmlkj", "vcxzpoiuyt", "vcxzlkjhf", "vcxznbvc", "vcxzmnbv", "vcxzpoiuytr", "vcxzlkjhgf", "vcxzqwertas", "vcxzlkj", "vcxzlkjhgd", "vcxzgfds", "vcxzn", "vcxzxcvbnm"];    
+  const animationCount = Object.entries(req.body.ids).length;
+  let reuploadedCount = 0;
+
+  if (version === CurrentVer) {
+    console.log('You are up to date.');
+  } else {
+    console.log("You're not up to date. Run the autoupdate");
+    return;
+  }
+
+  const failedIDs = [];
+
+  listenForKeyboardInput();
+
+  for (const [name, id] of Object.entries(req.body.ids)) {
+    if (stopReuploading) {
+      console.log(ORANGE, 'Stopping the reuploading process...', RESET);
+      break;
     }
 
-    if (selectedmode === 'SAS') {
-        console.log('This is SAS. It might not work. It\'s in beta.');
-      }
+    let i = 0;
+    let success = false;
 
-      if (version === CurrentVer) {
-        console.log('You are up to date.');
-      } else {
-        console.log("You're not up to date. Join our Discord to get the new version.");
-        return;
-      }
-    
-    const failedIDs = [];
-  
-    for (const [name, id] of Object.entries(req.body.ids)) {
-      let i = 0;
-      let success = false;
-  
-      while (i < 5 && !success) {
-        try {
-          if (req.body.groupID) {
-            remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
-          } else {
-            remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
-          }
-  
-          if (remapped[id]) {
-            console.log(name, id, '-->', remapped[id]);
-            success = true;
-          }
-        } catch (error) {
-          console.log(name, id, 'RETRYING');
+    while (i < 5 && !success) {
+      try {
+        if (req.body.groupID) {
+          remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id), req.body.groupID);
+        } else {
+          remapped[id] = await publishAnimation(cookie, csrf, nameTab[Math.floor(Math.random() * nameTab.length)], nameTab[Math.floor(Math.random() * nameTab.length)], await pullAnimation(id));
         }
-  
-        i++;
+
+        if (remapped[id]) {
+          console.log(GREEN, id, '-->', remapped[id], RESET);
+          success = true;
+          reuploadedCount++;
+        }
+      } catch (error) {
+        console.log(ORANGE, id, 'RETRYING', RESET);
       }
-  
-      if (!success) {
-        console.log(name, id, 'FAILED/DOESNT EXIST');
-        failedIDs.push(id);
-      }
+
+      i++;
     }
-  
-    console.log('Finished reuploading animations');
-  
-    // Retry failed animations
-    if (failedIDs.length > 0) {
-    // Ask the user if they want to retry failed animations
+
+    if (!success) {
+      console.log(RED, name, id, 'FAILED/DOESNT EXIST', RESET);
+      failedIDs.push(id);
+    }
+  }
+
+  console.log(GREEN, `Successfully reuploaded: ${reuploadedCount} animations.`, RESET);
+
+  if (failedIDs.length > 0) {
     let retryFailed = false;
     rl.question('Some animations failed. Do you want to retry them? (yes/no) ', async (answer) => {
       if (answer.toLowerCase() === 'yes') {
         retryFailed = true;
 
         for (const id of failedIDs) {
+          if (stopReuploading) {
+            console.log(ORANGE, 'Stopping the reuploading process...', RESET);
+            break;
+          }
+
           let success = false;
           let i = 0;
 
@@ -182,40 +202,38 @@ mainApp.post('/', async (req, res) => {
               }
 
               if (remapped[id]) {
-                console.log(`Animation ${id} retried successfully`);
+                console.log(GREEN, `${id} retried successfully`, RESET);
                 success = true;
+                reuploadedCount++;
               }
             } catch (error) {
-              console.log(`Animation ${id} failed retrying...`);
+              console.log(ORANGE, `${id} failed retrying...`, RESET);
             }
 
             i++;
           }
 
           if (!success) {
-            console.log(`Animation ${id} failed again after retrying`);
+            console.log(RED, `${id} failed after retrying`, RESET);
           }
         }
 
-        console.log('Finished retrying failed animations');
+        console.log(GREEN, `Successfully reuploaded: ${reuploadedCount} animations.`, RESET);
       } else {
         console.log('Skipping retrying failed animations');
       }
 
       console.log(remapped);
-      console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
+      console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`);
       workingStill = false;
-
-      // Close the readline interface
       rl.close();
     });
 
-    // Return the response to avoid sending an empty response before the user provides input
     return;
   }
 
   console.log(remapped);
-  console.log('Listening on 127.0.0.1:6969 \n- Version PAID');
+  console.log(`Listening on 127.0.0.1:6969 \n- Version ${CurrentVer}`);
   workingStill = false;
 });
 
