@@ -3,9 +3,9 @@
 set "scriptpath=%~dp0"
 set "publicpath=%scriptpath%Public"
 
-:DELETE_CONFIRMATION
-if exist "%scriptpath%confirmation.txt" (
-    del "%scriptpath%confirmation.txt"
+:DELETE_CONFIRMATION_PUBLIC
+if exist "%publicpath%\confirmation.txt" (
+    del "%publicpath%\confirmation.txt"
     goto START_SCRIPT
 )
 
@@ -20,7 +20,7 @@ start /B python "%publicpath%\main.py"
 timeout /t 5 > nul
 
 :WAIT_CONFIRMATION
-if not exist "%scriptpath%confirmation.txt" (
+if not exist "%publicpath%\confirmation.txt" (
     timeout /t 5 > nul
     goto WAIT_CONFIRMATION
 )
