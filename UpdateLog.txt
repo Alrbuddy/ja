@@ -1,7 +1,4 @@
-Spoofer Update v16.1
+Spoofer Update v2.0.0-AlphaA
 
-+ Added a animation counter that lets you know how many animations it reuploaded sucessfully
-+ Added a command Control + F that lets you stop the animation process and sends those through just incase anything happens later on, I'll make it so that you can re-enable it once you stop it.
-+UI change for better log
-- removed names and ids on the --> thing so that it only does the animationid it's more neat i guess made it so that it only puts the name if the animation fails
 + revamped version
++ bug fixes
