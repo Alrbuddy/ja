@@ -1,4 +1,4 @@
-const CurrentVer = "v2.0.0-AlphaA"
+const CurrentVer = "v3.0.0-AlphaA"
 
 const regList = util.promisify(regListCb);
 const mainApp = Express();
