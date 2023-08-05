@@ -63,7 +63,7 @@ def start_server_thread():
     server_thread.start()
     
     
-LG_CODE = '''local Version = "PAID V16.1"
+LG_CODE = '''local Version = "v3.0.0-AlphaA"
 local MarketplaceService = game:GetService("MarketplaceService")
 local HttpService = game:GetService("HttpService")
 --local HttpEnabled = game:GetService("HttpService").HttpEnabled
@@ -243,7 +243,7 @@ local HttpService = game:GetService("HttpService")
 --local HttpEnabled = game:GetService("HttpService").HttpEnabled
 --HttpEnabled = true
 
-local Version = "PAID V16.1"
+local Version = "v3.0.0-AlphaA"
 
 local function SendPOST(ids, cookie, port, key, mode, version)
     local url = "http://127.0.0.1:" .. port .. "/"
