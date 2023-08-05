@@ -1,4 +1,3 @@
-Spoofer Update v2.0.0-AlphaA
+Spoofer Update v3.0.0-AlphaA
 
-+ revamped version
-+ bug fixes
++ fixed not up to date bug
