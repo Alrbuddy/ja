@@ -3,7 +3,7 @@ const CurrentVer = "v3.0.0-AlphaA"
 const regList = util.promisify(regListCb);
 const mainApp = Express();
 
-let key = null
+let key = testerkey
 let cookie = null
 
 const validKeys = [
